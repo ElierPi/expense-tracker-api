@@ -125,6 +125,7 @@ def list_transactions(
     kind: Kind | None = None,
     currency: Currency | None = None,
     category_id: UUID | None = None,
+    search: str | None = Query(None, min_length=1, max_length=280),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     user: User = Depends(current_user),
@@ -143,6 +144,10 @@ def list_transactions(
         filters.append(Transaction.currency == currency)
     if category_id:
         filters.append(Transaction.category_id == category_id)
+    if search is not None:
+        if not search.strip():
+            raise HTTPException(422, "Search must contain non-whitespace characters")
+        filters.append(Transaction.description.icontains(search.strip(), autoescape=True))
     total = db.scalar(select(func.count()).select_from(Transaction).where(*filters))
     items = db.scalars(
         select(Transaction)
