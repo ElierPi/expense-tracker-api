@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app import api, auth
 from app.core.database import engine, get_db
-from app.features import categories
+from app.features import categories, transaction_patch
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -30,6 +30,7 @@ app = FastAPI(
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(api.router, prefix="/api/v1")
 app.include_router(categories.router, prefix="/api/v1")
+app.include_router(transaction_patch.router, prefix="/api/v1")
 
 
 @app.middleware("http")
