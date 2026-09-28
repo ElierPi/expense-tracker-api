@@ -1,6 +1,7 @@
 @base = http://localhost:8001
 @token = paste-access-token
 @categoryId = paste-category-id
+@transactionId = paste-transaction-id
 
 ### Register
 POST {{base}}/api/v1/auth/register
@@ -34,4 +35,30 @@ Authorization: Bearer {{token}}
 
 ### Monthly report
 GET {{base}}/api/v1/reports/monthly?year=2026&month=10&currency=COP
+Authorization: Bearer {{token}}
+
+### Rename a category
+PATCH {{base}}/api/v1/categories/{{categoryId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Groceries"}
+
+### Partial transaction update
+PATCH {{base}}/api/v1/transactions/{{transactionId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"description":"Updated description"}
+
+### Description search
+GET {{base}}/api/v1/transactions?search=lunch&currency=COP
+Authorization: Bearer {{token}}
+
+### Yearly report
+GET {{base}}/api/v1/reports/yearly?year=2026&currency=COP
+Authorization: Bearer {{token}}
+
+### CSV export
+GET {{base}}/api/v1/exports/transactions.csv?start=2026-01-01&end=2026-12-31&currency=COP
 Authorization: Bearer {{token}}

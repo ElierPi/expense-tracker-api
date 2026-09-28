@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query
@@ -36,8 +37,6 @@ def yearly_report(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
-    from datetime import date
-
     month = extract("month", Transaction.occurred_on)
     rows = db.execute(
         select(

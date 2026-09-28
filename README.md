@@ -63,7 +63,7 @@ El archivo [examples.http](./examples.http) contiene solicitudes para REST Clien
 | GET, PUT, DELETE | `/transactions/{id}` | Consulta, reemplazo y eliminación |
 | GET | `/reports/monthly` | Ingresos, gastos, saldo y desglose por categoría |
 
-El historial admite `start`, `end` (ambos inclusivos), `kind`, `currency`, `category_id`, `limit` y `offset`. `PUT` reemplaza el movimiento completo. Los listados tienen límites de página; los movimientos incluyen `total`.
+El historial admite `start`, `end` (ambos inclusivos), `kind`, `currency`, `category_id`, `search`, `limit` y `offset`. `PUT` reemplaza el movimiento completo. Los listados tienen límites de página; los movimientos incluyen `total`.
 
 ## Decisiones de diseño
 
@@ -104,6 +104,17 @@ docker compose -f compose.test.yaml down
 En bash define las variables con `export`. Las pruebas cubren aislamiento, FK compuesta, autenticación, tokens inválidos, precisión decimal, cambio de mes, separación por moneda, filtros y validaciones. GitHub Actions ejecuta estas comprobaciones sobre PostgreSQL 17 y Python 3.12/3.13.
 
 `requirements.lock` fija dependencias de ejecución. `requirements-dev.lock` añade herramientas de desarrollo. Para cambiar versiones, resuelve nuevamente las dependencias y ejecuta toda la suite antes de actualizar ambos archivos.
+
+## Funciones añadidas
+
+- `PATCH /api/v1/categories/{id}` cambia el nombre sin alterar los movimientos. Valida propiedad y nombres duplicados.
+- `GET /api/v1/transactions?search=texto` busca en descripciones, sin distinguir mayúsculas. `%` y `_` se tratan como texto literal y se combina con los demás filtros.
+- `PATCH /api/v1/transactions/{id}` actualiza solo los campos enviados. Rechaza cuerpos vacíos, valores `null`, campos desconocidos e importes inválidos; conserva los campos omitidos y valida categorías del usuario.
+- `GET /api/v1/reports/yearly?year=2026&currency=COP` incluye siempre doce meses, también los vacíos, y totales exactos de una sola moneda.
+- `GET /api/v1/exports/transactions.csv?start=2026-01-01&end=2026-12-31` exporta un intervalo inclusivo de hasta 366 días. Admite `currency` y `kind`. El límite es 10.000 filas; si se supera devuelve `413` sin truncar. Las celdas de texto que podrían interpretarse como fórmulas se prefijan con apóstrofo.
+- Las respuestas bajo `/api/v1/`, incluidos los errores, llevan `Cache-Control: no-store`. También se añaden `X-Content-Type-Options: nosniff` y `Referrer-Policy: no-referrer`.
+
+Los endpoints adicionales se agrupan en `app/features/`. La suite incluye pruebas de los datos de demostración y de la integridad de los datos al fallar una operación. CI construye la imagen Docker y comprueba su importación y esquema OpenAPI como usuario sin privilegios y sin acceso a red, además de ejecutar las pruebas con PostgreSQL.
 
 ## Alcance
 
